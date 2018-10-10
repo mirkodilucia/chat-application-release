@@ -197,7 +197,7 @@ void receiveOfflineMessage(int sock, char *username) {
 		printf("%s\n", msg);
 
 		while (receiveSize(sock)) {
-			memset(msg, 0, sizeof(msg));
+			memset(msg, 0, BUFFER_SIZE);
 			buffer = receiveString(sock);
 			printf("%s\n", buffer);
 			free(buffer);
@@ -330,7 +330,7 @@ void sendOnline(int sock, char *username) {
     memset(buffer, 0, sizeof(buffer));
     while(fgets(tmp, BUFFER_SIZE, stdin)) {
         if (*tmp == '.' && *(tmp + 1) == '\n')
-        break;
+        	break;
         
         strcat(buffer, tmp);
         memset(tmp, 0, sizeof(tmp));
@@ -356,19 +356,28 @@ void sendOnline(int sock, char *username) {
 
 void sendOffline(int sock, char *username) {
     
-    char buffer[BUFFER_SIZE], tmp[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
     
-    memset(buffer, 0, sizeof(buffer));
-    while (fgets(tmp, BUFFER_SIZE, stdin)) {
+    writeMessagePrompt(buffer);
+    sendString(sock, buffer);
+    
+}
+
+void writeMessagePrompt(char *buf) {
+
+	char buffer[BUFFER_SIZE], tmp[BUFFER_SIZE];
+
+	memset(buffer, 0, sizeof(buffer));
+    while(fgets(tmp, BUFFER_SIZE, stdin)) {
         if (*tmp == '.' && *(tmp + 1) == '\n')
-        break;
+        	break;
         
         strcat(buffer, tmp);
         memset(tmp, 0, sizeof(tmp));
     }
-    
-    sendString(sock, buffer);
-    
+
+	strcpy(buf, buffer);
+
 }
 
 

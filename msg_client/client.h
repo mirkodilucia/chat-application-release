@@ -18,6 +18,7 @@ struct thread_args {
 	int  *UDP_socket;
 };
 
+void writeMessagePrompt();
 void initMessage(const char*, const char*, const char*);
 void printCommand();
 

@@ -212,6 +212,7 @@ void sendOfflineMessage(int sock) {
     
     char *username = receiveUsername(sock);
     struct OfflineMessage *offlineMsg;
+	struct Message *delMessage;
 
     while ((offlineMsg = popMessage(username))) {
         sendSize(sock, 1);
@@ -221,8 +222,12 @@ void sendOfflineMessage(int sock) {
         while (msg) {
             sendSize(sock, 1);
             sendString(sock, msg->text);
-			
+
+			delMessage = msg;
             msg = msg->next;
+
+			free(delMessage->text);
+			free(delMessage);
         }
 		
         

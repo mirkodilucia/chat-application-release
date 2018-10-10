@@ -109,7 +109,7 @@ struct OfflineMessage* popMessage(char *username) {
     
     struct User *user = findUser(username, -1);
     struct OfflineMessage *msg = user->firstMessage;
-	
+
 	if (msg) {
     	user->firstMessage = msg->next;
 		return msg;
