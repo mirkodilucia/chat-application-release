@@ -7,12 +7,14 @@ void sendUsername(int sock, char *username) {
 
 	length = htons(lenc);
 	
-	while (send(sock, (void *) &length, sizeof(uint16_t), 0) < 0) {
+	while (send(sock, (void *)&length, sizeof(uint16_t), 0) < 0) {
 		perror("Errore durante l'invio della lunghezza dei dati");
 	}
 
+	//printf("%s\n", username);
+
 	if (lenc) {
-		while (send(sock, (void*) username, lenc, 0) < 0) {
+		while (send(sock, (void*)username, lenc, 0) < 0) {
 			perror("Errore nell'invio dell'username'");
 		}
 	}
@@ -28,13 +30,17 @@ char *receiveUsername(int sock) {
 		perror("Errore durante la ricezione della lunghezza del dati");
 	}
 
+	//printf("Lunghezza %d\n", length);
+
 	if (ntohs(length)) {
 		username = malloc(ntohs(length));
-		memset(username, 0, (ntohs(length)));
+		memset(username, 0, ntohs(length));
 		while (recv(sock, (void *)username, ntohs(length), 0) < 0) {
 			perror("Errore duratne la ricezione dei dati");
 		}
 	}
+
+	//printf("Ricevuto %s\n", username);
 
 	return username;
 }

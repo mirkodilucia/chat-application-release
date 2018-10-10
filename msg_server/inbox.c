@@ -15,7 +15,7 @@ int addUser(char *username, char *address, char *port) {
     if (inbox.users == NULL) {
         inbox.users = newUser;
         inbox.usersSize++;
-        return 1;
+        return 0;
     }
     
     struct User *user = inbox.users;
@@ -23,7 +23,7 @@ int addUser(char *username, char *address, char *port) {
     while (user != NULL) {
         if (!strcmp(user->username, username)) {
             if (user->infoSocket != NULL) {
-                return 0;
+                return 1;
             }else{
                 updateUserInfo(user, address, port);
                 return 2;
@@ -37,7 +37,7 @@ int addUser(char *username, char *address, char *port) {
     tmp->next = newUser;
     inbox.usersSize++;
     
-    return 1;
+    return 0;
 }
 
 int updateUserConnection() {
@@ -108,11 +108,14 @@ void pushMessage(char *username, char *sender, char *text) {
 struct OfflineMessage* popMessage(char *username) {
     
     struct User *user = findUser(username, -1);
-    
     struct OfflineMessage *msg = user->firstMessage;
-    user->firstMessage = msg->next;
-    
-    return msg;
+	
+	if (msg) {
+    	user->firstMessage = msg->next;
+		return msg;
+	}
+
+    return NULL;
 }
 
 void setOffline(char *username) {

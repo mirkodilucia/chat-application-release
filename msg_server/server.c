@@ -1,55 +1,56 @@
 #include "server.h"
 
 int main(int argc, char **argv) {
-    
-    int listener, new_sock;
-    
-    // Socket di invio e ricezione
-    struct sockaddr_in my_addr;
-    struct sockaddr_in cl_addr;
-    
-    // Variabili accessorie per la gestione delle connessioni con i client
-    int i, fdmax, result;
-    unsigned int addrlen;
-    
-    char buffer[BUFFER_SIZE];
-    
-    // SET di socket per la listen
-    fd_set master, master_cpy;
-    char *new_username = NULL;
-    
-    listener = socket(AF_INET, SOCK_STREAM, 0);
+
+	int listener, new_sock;
+	
+	// Socket di invio e ricezione
+	struct sockaddr_in my_addr;
+	struct sockaddr_in cl_addr;
+
+	// Variabili accessorie per la gestione delle connessioni con i client
+	int i, fdmax, result;
+	unsigned int addrlen;
+
+	char buffer[BUFFER_SIZE];
+
+	// SET di socket per la listen
+	fd_set master, master_cpy;
+	char *new_username = NULL;
+
+	listener = 	socket(AF_INET, SOCK_STREAM, 0);
     
     FD_ZERO(&master);
     FD_ZERO(&master_cpy);
-    
-    memset(&my_addr, 0, sizeof(my_addr));
-    my_addr.sin_family = AF_INET;
-    my_addr.sin_port = htons(atoi(argv[1]));
-    my_addr.sin_addr.s_addr = INADDR_ANY;
-    
-    if (bind(listener, (struct sockaddr*)&my_addr, sizeof(my_addr)) < 0) {
-        perror("Bind error");
-        return 1;
-    }else{
-        logger("Bind eseguita correttamenete");
-    }
-    
-    if (listen(listener, 10) < 0) {
-        perror("Listen error");
-        return 1;
-    }
-    
-    FD_SET(listener, &master);
-    fdmax = listener;
 
-    for (;;) {
-        master_cpy = master;
-        select(fdmax + 1, &master_cpy, NULL, NULL, NULL);
+	memset(&my_addr, 0, sizeof(my_addr));
+	my_addr.sin_family = AF_INET;
+	my_addr.sin_port = htons(atoi(argv[1]));
+	my_addr.sin_addr.s_addr = INADDR_ANY;
+    
+	if (bind(listener, (struct sockaddr*)&my_addr, sizeof(my_addr)) < 0) {
+		perror("Bind error");
+		return 1;
+	}else{
+		logger("Bind eseguita correttamenete");
+	}
+
+	if (listen(listener, 10) < 0) {
+		perror("Listen error");
+		return 1;
+	}
+
+	FD_SET(listener, &master);
+	fdmax = listener;
+
+	for (;;) {
+		master_cpy = master;
+		select(fdmax + 1, &master_cpy, NULL, NULL, NULL);
+
+		for (i=0; i<=fdmax; ++i) {
+			// Descrittore pronto
+			if (FD_ISSET(i, &master_cpy)) {
         
-        for (i=0; i<fdmax; ++i) {
-            // Descrittore pronto
-            if (FD_ISSET(i, &master_cpy)) {
                 // Nuova connessione
                 if (i==listener) {
                     
@@ -90,8 +91,10 @@ int main(int argc, char **argv) {
                         deregisterCommand(i);
                     }else if (!strcmp(buffer, "!send\0")) {
                         logger("Send\n");
-                        sendCommand(new_sock);
+                        sendCommand(i);
                     }
+
+					printInbox();
                 }
             }
         }
@@ -101,24 +104,29 @@ int main(int argc, char **argv) {
 }
 
 void command(int sock, char *buffer, fd_set *master) {
-    int length;
-    
-    int ret, registrato = 0;
-    char msg[50];
-    
-    memset(&length, 0, sizeof(uint16_t));
-    
-    ret = recv(sock, (void*)&length, sizeof(int), 0);
-    
-    if (ret < 0) {
-        
-    }else if (!ret) {
+    uint16_t length;
+
+	int ret, registrato = 0;
+	char msg[50];
+
+	memset(&length, 0, sizeof(uint16_t));
+
+	ret = recv(sock, (void*)&length, sizeof(uint16_t), 0);
+
+	printf("Len %d\n", length);
+
+	if (ret < 0) {
+		perror("Errore durante la ricezione della lunghezza del comando");
+		return;
+	}else if (!ret) {
+
         struct User *disconnettere = findUser(NULL, sock);
         
         if (registrato) {
             setOffline(disconnettere->username);
-            
         }
+
+ 		logger("Un client registrato sta per essere disconnesso");
         
         FD_CLR(sock, master);
         close(sock);
@@ -126,9 +134,11 @@ void command(int sock, char *buffer, fd_set *master) {
     }
     
     // Ricezione del comando
-    if (recv(sock, (void*) &buffer, ntohs(length), 0) < 0) {
+    if (recv(sock, (void*)buffer, ntohs(length), 0) < 0) {
         perror("Comando non ricevuto");
     }
+
+	printf("Data %s", buffer);
     
     return;
 }
@@ -158,10 +168,15 @@ void sendCommand(int sock) {
     // Utente offline
     if (!user->infoSocket) {
         sendSize(sock, 1);
+		
         char *sender = receiveUsername(sock);
+		printf("Sender %s\n", sender);
         char *buffer = receiveString(sock);
         
         pushMessage(username, sender, buffer);
+
+		free(sender);
+		free(buffer);
         
     }else{
     // Utente online
@@ -172,6 +187,7 @@ void sendCommand(int sock) {
 
     }
     
+	//freeUser(user);
     free(username);
 }
 
@@ -195,8 +211,8 @@ void whoCommand(int sock) {
 void sendOfflineMessage(int sock) {
     
     char *username = receiveUsername(sock);
-    struct OfflineMessage *offlineMsg = popMessage("ciao");
-    
+    struct OfflineMessage *offlineMsg;
+
     while ((offlineMsg = popMessage(username))) {
         sendSize(sock, 1);
         sendUsername(sock, offlineMsg->username);
@@ -204,14 +220,16 @@ void sendOfflineMessage(int sock) {
         struct Message *msg = offlineMsg->msg;
         while (msg) {
             sendSize(sock, 1);
-            sendUsername(sock, offlineMsg->username);
-            
+            sendString(sock, msg->text);
+			
             msg = msg->next;
         }
+		
         
         sendSize(sock, 0);
-    
     }
+	
+	
     sendSize(sock, 0);
 }
 

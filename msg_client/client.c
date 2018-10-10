@@ -37,9 +37,48 @@ int main(int argc, char **argv) {
 	while (printf("%s", prompt) && fgets(cmd, CMD_SIZE, stdin)) {
 		splitCommand(cmd, &argCommand);
 
+		if(!strcmp("!register\0", cmd) && !argCommand){
+			printf("Hai dimenticato a specificare l'username oppure contiene degli spazi\n");
+			continue;
+		}else if(!strcmp("!register\0", cmd) && username!=NULL){
+			printf("Sei già registrato\n");
+			continue;
+		}else if(!strcmp("!send\0", cmd) && !username){
+			printf("Non sei ancora registrato, registrati tramite !register <username>\n");
+			continue;
+		}else if(!strcmp("!send\0", cmd) && username){
+			if(argCommand==NULL || !strlen(argCommand)){
+				printf("Nessun username specificato per l'invio del messaggio\n");
+				continue;
+			}else if(!strcmp(username, argCommand)){
+				printf("Tentativo di invio messaggio a te stesso\n");
+				continue;
+			}
+		}
+
+		serveCommand(sock, cmd);
+
 		if (!strcmp("!register\0", cmd)) {
-            printf("Register\n");
-			registerCommand(sock, argCommand, argv[1], argv[2]);
+
+			if (!registerCommand(sock, argCommand, argv[1], argv[2])) {
+
+				memset(prompt, 0, strlen(prompt));
+				sprintf(prompt, "%s>", argCommand);
+		
+				username = malloc(strlen(argCommand));
+				sprintf(username, "%s", argCommand);
+
+				args.ip = malloc(strlen(argv[1]));
+				args.port = malloc(strlen(argv[2]));
+				args.username = malloc(strlen(username));
+
+				sprintf(args.ip, "%s", argv[1]);
+				sprintf(args.port, "%s", argv[2]);
+				sprintf(args.username, "%s", username);
+
+				pthread_create(&thread, NULL, receiveUDP, (void *)&args);
+
+			}
 		}else if (!strcmp("!who\0", cmd)) {
 			whoCommand(sock, username);
 		}else if (!strcmp("!help\0", cmd)) {
@@ -54,12 +93,13 @@ int main(int argc, char **argv) {
 					printf("Impossibile connettersi a %s: utente inesistente\n", argCommand);
 					break;
 				case 1:
-					sendOffline(sock, username);
+					sendUsername(sock, username);
+					sendOffline(sock, argCommand);
 					printf("Messaggio inviato correttamente\n");
 					break;
 				case 2:
-					sendOnline(sock, username);
-					printf("Messaggio istantaneo inviato correttamente");
+					sendOnline(sock, argCommand);
+					printf("Messaggio istantaneo inviato correttamente\n");
 					break;
 			}
 
@@ -130,7 +170,7 @@ void *receiveUDP(void *args) {
 	while (t_args->username != NULL && (username=receiveUsername(sock))) {
 		buffer = receiveString(sock);
 
-		printf("\n%s (msg istantaneo)>\n%s", username, buffer);
+		printf("\n%s (msg istantaneo)>\n%s\n", username, buffer);
 		free(username);
 		free(buffer);
 		printf("%s>", t_args->username);
@@ -141,8 +181,32 @@ void *receiveUDP(void *args) {
 
 }
 
-void receiveOfflineMessage(int sock) {
+void receiveOfflineMessage(int sock, char *username) {
     
+	sendUsername(sock, username);
+
+	char msg[BUFFER_SIZE];
+	char *sender;
+	char *buffer;
+	
+	while (receiveSize(sock)) {
+		sender = receiveUsername(sock);
+
+		memset(msg, 0, sizeof(msg));
+		sprintf(msg, "%s (msg offline)>", sender);
+		printf("%s\n", msg);
+
+		while (receiveSize(sock)) {
+			memset(msg, 0, sizeof(msg));
+			buffer = receiveString(sock);
+			printf("%s\n", buffer);
+			free(buffer);
+		}
+
+		free(sender);
+
+	}
+
 }
 
 void splitCommand(const char *command, char ** arg_command) {
@@ -167,6 +231,24 @@ void splitCommand(const char *command, char ** arg_command) {
     
 }
 
+void serveCommand(int sock, char *cmd) {
+
+	uint16_t length = htons(strlen(cmd) + 1);
+
+	
+	if (send(sock, (void*)&length, sizeof(uint16_t), 0) < 0) {
+		perror("Errore durante l'invio della lunghezza del comando");
+		return;
+	}
+	
+
+	if (send(sock, (void*)cmd, strlen(cmd) + 1, 0) < 0) {
+		perror("Errore durante l'invio del comando");
+		return;
+	}
+
+}
+
 int registerCommand(int sock, char *username, char *ip, char *port) {
     unsigned int result;
     
@@ -179,16 +261,16 @@ int registerCommand(int sock, char *username, char *ip, char *port) {
     
     result = receiveSize(sock);
     switch(result) {
-            case 0:
+    	case 0:
             printf("Registrato correttamente\n");
-            break;
-            case 1:
+        	break;
+        case 1:
             printf("Registrazione fallita, ti sei già registrato\n");
             return 1;
             break;
-            case 2:
+        case 2:
             printf("Riconnessione completata\n");
-            receiveOfflineMessage(sock);
+            receiveOfflineMessage(sock, username);
             break;
     }
     return 0;
@@ -196,7 +278,7 @@ int registerCommand(int sock, char *username, char *ip, char *port) {
 
 void whoCommand(int sock, char *myUsername) {
     char *username;
-    unsigned int state;
+    unsigned int state = 0;
     
     char **status = malloc(sizeof(char*));
     status[0] = malloc(strlen("Offline"));
@@ -207,8 +289,9 @@ void whoCommand(int sock, char *myUsername) {
     
     printf("Client registrati:\n");
     while(receiveSize(sock)) {
+		
         username = receiveUsername(sock);
-        memset(&status, 0, sizeof(unsigned int));
+        memset(&state, 0, sizeof(unsigned int));
         state = receiveSize(sock);
         
         if (myUsername && !strcmp(username, myUsername)) {
@@ -218,6 +301,7 @@ void whoCommand(int sock, char *myUsername) {
         
         printf("\t%s (%s)\t\n", username, status[state]);
         free(username);
+		
     }
     
     free(status[0]);
@@ -265,8 +349,7 @@ void sendOnline(int sock, char *username) {
     }
     
     sendUsername(sock_msg, username);
-    
-    sendString(sock_msg, username);
+    sendString(sock_msg, buffer);
     close(sock_msg);
     
 }
@@ -275,7 +358,6 @@ void sendOffline(int sock, char *username) {
     
     char buffer[BUFFER_SIZE], tmp[BUFFER_SIZE];
     
-    sendUsername(sock, username);
     memset(buffer, 0, sizeof(buffer));
     while (fgets(tmp, BUFFER_SIZE, stdin)) {
         if (*tmp == '.' && *(tmp + 1) == '\n')

@@ -22,11 +22,13 @@ void initMessage(const char*, const char*, const char*);
 void printCommand();
 
 void splitCommand(const char *command, char ** arg_command);
+
+void serveCommand(int sock, char *cmd);
 int registerCommand(int sock, char *username, char *ip, char *port);
 void sendOnline(int sock, char *username);
 void sendOffline(int sock, char *username);
 void whoCommand(int sock, char *myUsername);
-void receiveOfflineMessage(int sock);
+void receiveOfflineMessage(int sock, char *username);
 
 void *receiveUDP(void*);
 
