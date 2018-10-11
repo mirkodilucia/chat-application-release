@@ -2,6 +2,8 @@
 
 int main(int argc, char **argv) {
 
+	sleep(1);
+
 	int sock;
 	struct sockaddr_in sv_addr;
 

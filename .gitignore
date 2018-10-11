@@ -1,0 +1,7 @@
+*.o
+msg_client/*.o
+msg_server/*.o
+
+msg_client/client
+msg_server/server
+

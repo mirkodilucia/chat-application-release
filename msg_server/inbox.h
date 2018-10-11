@@ -1,3 +1,6 @@
+#ifndef INBOX_H
+#define INBOX_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -82,3 +85,5 @@ void freeUser(struct User*);
 struct OfflineMessage* allocOfflineMessage(char *username);
 void freeOfflineMessage(struct OfflineMessage*);
 struct Message* allocMessage(char *text);
+
+#endif

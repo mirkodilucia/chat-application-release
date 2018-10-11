@@ -68,7 +68,7 @@ int main(int argc, char **argv) {
                     
                     if (!strcmp(buffer, "!register\0")) {
                         logger("Register\n");
-                        result = registerCommand(new_sock);
+                        result = registerCommand(i);
                         sendSize(i, result);
                         
                         if (result == 2) {
@@ -144,11 +144,11 @@ void command(int sock, char *buffer, fd_set *master) {
 }
 
 int registerCommand(int sock) {
-    
+
     char *username = receiveUsername(sock);
     char *address = receiveString(sock);
     char *port = receiveString(sock);
-    
+
     int result = addUser(username, address, port);
     return result;
 }
