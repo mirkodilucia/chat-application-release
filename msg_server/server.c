@@ -16,7 +16,6 @@ int main(int argc, char **argv) {
 
 	// SET di socket per la listen
 	fd_set master, master_cpy;
-	char *new_username = NULL;
 
 	listener = 	socket(AF_INET, SOCK_STREAM, 0);
     
@@ -105,9 +104,7 @@ int main(int argc, char **argv) {
 
 void command(int sock, char *buffer, fd_set *master) {
     uint16_t length;
-
 	int ret, registrato = 0;
-	char msg[50];
 
 	memset(&length, 0, sizeof(uint16_t));
 
@@ -211,7 +208,7 @@ void sendOfflineMessage(int sock) {
 
     while ((offlineMsg = popMessage(username))) {
         sendSize(sock, 1);
-        sendUsername(sock, offlineMsg->username);
+        sendUsername(sock, offlineMsg->username); 
         
         struct Message *msg = offlineMsg->msg;
         while (msg) {
@@ -241,8 +238,6 @@ void deregisterCommand(int sock) {
 void quitCommand(int sock) {
     
     char *username;
-    char msg[BUFFER_SIZE];
-    
     username = receiveUsername(sock);
     
     if (username) {

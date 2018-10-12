@@ -142,6 +142,8 @@ int main(int argc, char **argv) {
 		free(argCommand);
 		argCommand = NULL;
 	}
+
+	return 0;
 }
 
 /*
