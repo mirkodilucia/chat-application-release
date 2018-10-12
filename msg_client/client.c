@@ -2,8 +2,6 @@
 
 int main(int argc, char **argv) {
 
-	sleep(1);
-
 	int sock;
 	struct sockaddr_in sv_addr;
 
@@ -312,15 +310,12 @@ void whoCommand(int sock, char *myUsername) {
     
 }
 
-
-
-
 void sendOnline(int sock, char *username) {
     
     char *ip;
     char *port;
     
-    char buffer[BUFFER_SIZE], tmp[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
     struct sockaddr_in sv_addr;
     
     int sock_msg;
@@ -329,14 +324,7 @@ void sendOnline(int sock, char *username) {
     ip = receiveString(sock);
     port = receiveString(sock);
     
-    memset(buffer, 0, sizeof(buffer));
-    while(fgets(tmp, BUFFER_SIZE, stdin)) {
-        if (*tmp == '.' && *(tmp + 1) == '\n')
-        	break;
-        
-        strcat(buffer, tmp);
-        memset(tmp, 0, sizeof(tmp));
-    }
+    writeMessagePrompt(buffer);
     
     sock_msg = socket(AF_INET, SOCK_DGRAM, 0);
     
