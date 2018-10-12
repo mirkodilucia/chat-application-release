@@ -113,8 +113,6 @@ void command(int sock, char *buffer, fd_set *master) {
 
 	ret = recv(sock, (void*)&length, sizeof(uint16_t), 0);
 
-	printf("Len %d\n", length);
-
 	if (ret < 0) {
 		perror("Errore durante la ricezione della lunghezza del comando");
 		return;
@@ -137,8 +135,6 @@ void command(int sock, char *buffer, fd_set *master) {
     if (recv(sock, (void*)buffer, ntohs(length), 0) < 0) {
         perror("Comando non ricevuto");
     }
-
-	printf("Data %s", buffer);
     
     return;
 }
@@ -170,7 +166,6 @@ void sendCommand(int sock) {
         sendSize(sock, 1);
 		
         char *sender = receiveUsername(sock);
-		printf("Sender %s\n", sender);
         char *buffer = receiveString(sock);
         
         pushMessage(username, sender, buffer);

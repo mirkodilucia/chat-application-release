@@ -5,6 +5,8 @@ int main(int argc, char **argv) {
 	int sock;
 	struct sockaddr_in sv_addr;
 
+	sleep(1);
+
 	char *cmd = malloc(CMD_SIZE);
 	char *argCommand = NULL;
 
@@ -120,7 +122,7 @@ int main(int argc, char **argv) {
 
 			free(args.UDP_socket);
 	
-			printf("Deregistrato correttamente");
+			printf("Deregistrato correttamente\n");
 
 			sprintf(prompt, "> ");
 

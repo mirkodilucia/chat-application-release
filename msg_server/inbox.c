@@ -228,7 +228,7 @@ void freeUser(struct User *user) {
 struct OfflineMessage* allocOfflineMessage(char *username) {
     struct OfflineMessage *offlineMessage = malloc(sizeof(struct OfflineMessage));
     
-    offlineMessage->username = malloc(sizeof(username) + 1);
+    offlineMessage->username = malloc(strlen(username) + 1);
     strcpy(offlineMessage->username, username);
     offlineMessage->count = 0;
     offlineMessage->next = NULL;
@@ -240,7 +240,7 @@ struct OfflineMessage* allocOfflineMessage(char *username) {
 struct Message* allocMessage(char *text) {
  
     struct Message *message = malloc(sizeof(struct Message));
-    message->text = malloc(sizeof(text) + 1);
+    message->text = malloc(strlen(text) + 1);
     message->next = NULL;
     
     strcpy(message->text, text);

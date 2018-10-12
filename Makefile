@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall
 LDFLAGS=-lpthread
-TERM=xterm
+TERM=x-terminal-emulator
 
 PSHARED=./shared/
 PSERVER=./msg_server/
@@ -39,6 +39,6 @@ clean:
 	rm -f $(PSERVER)*.o $(PSERVER)server
 
 test: all
-	$(TERM) -hold -e sh ./test.sh
-	$(TERM) -hold -e sh ./stop.sh
+	$(TERM) -e sh ./test.sh
+	# sh ./stop.sh
 	
