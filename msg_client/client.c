@@ -3,7 +3,7 @@
 int main(int argc, char **argv) {
 
 	int sock;
-	struct sockaddr_in sv_addr;
+	struct sockaddr_in svAddr;
 
 	sleep(1);
 
@@ -23,13 +23,13 @@ int main(int argc, char **argv) {
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 	
-	memset(&sv_addr, 0, sizeof(sv_addr));
-	sv_addr.sin_family = AF_INET;
-	sv_addr.sin_port = htons(atoi(argv[4]));
+	memset(&svAddr, 0, sizeof(svAddr));
+	svAddr.sin_family = AF_INET;
+	svAddr.sin_port = htons(atoi(argv[4]));
 	
-	inet_pton(AF_INET, argv[3], &sv_addr.sin_addr);
+	inet_pton(AF_INET, argv[3], &svAddr.sin_addr);
 
-	if (connect(sock, (struct sockaddr*)&sv_addr, sizeof(sv_addr)) < 0) {
+	if (connect(sock, (struct sockaddr*)&svAddr, sizeof(svAddr)) < 0) {
 		perror("Errore durante la connessione");
 		exit(1);
 	}
@@ -153,31 +153,31 @@ int main(int argc, char **argv) {
 
 void *receiveUDP(void *args) {
 
-	struct sockaddr_in my_addr;
+	struct sockaddr_in myAddr;
 	int sock;
 	char *buffer, *username = NULL;
-	struct thread_args* t_args = (struct thread_args*)args;
+	struct thread_args* tArgs = (struct thread_args*)args;
 
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
-	t_args->UDP_socket = malloc(sizeof(int));
-	*(t_args->UDP_socket) = sock;
-	memset(&my_addr, 0, sizeof(my_addr));
+	tArgs->UDP_socket = malloc(sizeof(int));
+	*(tArgs->UDP_socket) = sock;
+	memset(&myAddr, 0, sizeof(myAddr));
 
-	my_addr.sin_family = AF_INET;
-	my_addr.sin_port = htons(atoi(t_args->port));
-	inet_pton(AF_INET, t_args->ip, &my_addr.sin_addr);
+	myAddr.sin_family = AF_INET;
+	myAddr.sin_port = htons(atoi(tArgs->port));
+	inet_pton(AF_INET, tArgs->ip, &myAddr.sin_addr);
 
-	if (bind(sock, (struct sockaddr*)&my_addr, sizeof(my_addr)) < 0) {
+	if (bind(sock, (struct sockaddr*)&myAddr, sizeof(myAddr)) < 0) {
 		perror("Errore in fase di bind del soket UDP");
 	}
 
-	while (t_args->username != NULL && (username=receiveUsername(sock))) {
+	while (tArgs->username != NULL && (username=receiveUsername(sock))) {
 		buffer = receiveString(sock);
 
 		printf("\n%s (msg istantaneo)>\n%s\n", username, buffer);
 		free(username);
 		free(buffer);
-		printf("%s>", t_args->username);
+		printf("%s>", tArgs->username);
 		fflush(stdout);
 	}
 
@@ -320,7 +320,7 @@ void sendOnline(int sock, char *username) {
     char *port;
     
     char buffer[BUFFER_SIZE];
-    struct sockaddr_in sv_addr;
+    struct sockaddr_in svAddr;
     
     int sock_msg;
     
@@ -332,13 +332,13 @@ void sendOnline(int sock, char *username) {
     
     sock_msg = socket(AF_INET, SOCK_DGRAM, 0);
     
-    memset(&sv_addr, 0, sizeof(sv_addr));
-    sv_addr.sin_family = AF_INET;
-    sv_addr.sin_port = htons(atoi(port));
+    memset(&svAddr, 0, sizeof(svAddr));
+    svAddr.sin_family = AF_INET;
+    svAddr.sin_port = htons(atoi(port));
     
-    inet_pton(AF_INET, ip, &sv_addr.sin_addr);
+    inet_pton(AF_INET, ip, &svAddr.sin_addr);
     
-    if (connect(sock_msg, (struct sockaddr*)&sv_addr, sizeof(sv_addr)) < 0) {
+    if (connect(sock_msg, (struct sockaddr*)&svAddr, sizeof(svAddr)) < 0) {
         perror("Errore durante la comunicazione al client UDP");
     }
     
@@ -373,7 +373,6 @@ void writeMessagePrompt(char *buf) {
 	strcpy(buf, buffer);
 
 }
-
 
 
 void printCommand() {
