@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
                     command(i, buffer, &master);
                     
                     if (!strcmp(buffer, "!register\0")) {
-                        logger("Register\n");
+                        logger("Register");
                         result = registerCommand(i);
                         sendSize(i, result);
                         
@@ -74,22 +74,22 @@ int main(int argc, char **argv) {
                             sendOfflineMessage(i);
                         }
                     }else if (!strcmp(buffer, "!who\0")) {
-                        logger("Who\n");
+                        logger("Who");
                         
                         whoCommand(i);
                         
                     }else if (!strcmp(buffer, "!quit\0")) {
-                        logger("Quit\n");
+                        logger("Quit");
                         
                         quitCommand(i);
                         close(i);
                         FD_CLR(i, &master);
                         
                     }else if (!strcmp(buffer, "!deregister\0")) {
-                        logger("Deregister\n");
+                        logger("Deregister");
                         deregisterCommand(i);
                     }else if (!strcmp(buffer, "!send\0")) {
-                        logger("Send\n");
+                        logger("Send");
                         sendCommand(i);
                     }
 
