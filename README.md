@@ -13,7 +13,7 @@ Chat application (client and server) written in C, using UNIX socket.
 To try application follow this steps
     
 1. Clone project
-2. Navigate inside project root folder and type
+2. Navigate inside project's root folder and type
 
 ###### Compile
  Compile binaries
