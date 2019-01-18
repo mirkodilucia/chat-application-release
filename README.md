@@ -23,7 +23,7 @@ make all
 ```
 
 ###### Run server
-Launch client
+Launch server
 
 ```sh
 cd msg_server
