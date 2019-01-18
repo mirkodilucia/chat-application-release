@@ -242,6 +242,7 @@ void quitCommand(int sock) {
     
     if (username) {
         setOffline(username);
+		return;
     }
     
     logger("Disconnessione di un client non registrato");
