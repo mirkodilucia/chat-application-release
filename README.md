@@ -2,7 +2,7 @@
 
 Computer networking project assigned in 2018 by University of Pisa Computer Engineering course.
 The project consist of client and server programs that can run on different system.
-Client program comunicate with server for registration, and retrieving user's information like IP address and open PORT for listening.
+Client program comunicate with server for registration, and retrieving user's informations like IP address and open PORT for listening.
 More details are available on course [site](http://www2.ing.unipi.it/c.vallati/files/reti/Progetto2017.pdf), italian only.
 
 #### TL;DR
